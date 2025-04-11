@@ -11,12 +11,8 @@ const BOMService = {
    * @returns {Promise} Promise with BOMs response
    */
   getBOMs: async (params = {}) => {
-    try {
-      const response = await api.get('/boms', { params });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get('/boms', { params });
+    return response.data;
   },
   
   /**
@@ -25,12 +21,8 @@ const BOMService = {
    * @returns {Promise} Promise with BOM response
    */
   getBOMById: async (id) => {
-    try {
-      const response = await api.get(`/boms/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/boms/${id}`);
+    return response.data;
   },
   
   /**
@@ -39,12 +31,8 @@ const BOMService = {
    * @returns {Promise} Promise with create BOM response
    */
   createBOM: async (bomData) => {
-    try {
-      const response = await api.post('/boms', bomData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/boms', bomData);
+    return response.data;
   },
   
   /**
@@ -54,12 +42,8 @@ const BOMService = {
    * @returns {Promise} Promise with update BOM response
    */
   updateBOM: async (id, bomData) => {
-    try {
-      const response = await api.put(`/boms/${id}`, bomData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put(`/boms/${id}`, bomData);
+    return response.data;
   },
   
   /**
@@ -68,12 +52,8 @@ const BOMService = {
    * @returns {Promise} Promise with delete BOM response
    */
   deleteBOM: async (id) => {
-    try {
-      const response = await api.delete(`/boms/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.delete(`/boms/${id}`);
+    return response.data;
   },
   
   /**
@@ -82,12 +62,8 @@ const BOMService = {
    * @returns {Promise} Promise with BOM lines response
    */
   getBOMLines: async (bomId) => {
-    try {
-      const response = await api.get(`/boms/${bomId}/lines`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/boms/${bomId}/lines`);
+    return response.data;
   },
   
   /**
@@ -97,12 +73,8 @@ const BOMService = {
    * @returns {Promise} Promise with create BOM line response
    */
   createBOMLine: async (bomId, lineData) => {
-    try {
-      const response = await api.post(`/boms/${bomId}/lines`, lineData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post(`/boms/${bomId}/lines`, lineData);
+    return response.data;
   },
   
   /**
@@ -113,12 +85,8 @@ const BOMService = {
    * @returns {Promise} Promise with update BOM line response
    */
   updateBOMLine: async (bomId, lineId, lineData) => {
-    try {
-      const response = await api.put(`/boms/${bomId}/lines/${lineId}`, lineData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put(`/boms/${bomId}/lines/${lineId}`, lineData);
+    return response.data;
   },
   
   /**
@@ -128,12 +96,8 @@ const BOMService = {
    * @returns {Promise} Promise with delete BOM line response
    */
   deleteBOMLine: async (bomId, lineId) => {
-    try {
-      const response = await api.delete(`/boms/${bomId}/lines/${lineId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.delete(`/boms/${bomId}/lines/${lineId}`);
+    return response.data;
   }
 };
 

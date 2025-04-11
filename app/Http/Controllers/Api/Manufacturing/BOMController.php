@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api\Manufacturing;
 
+use App\Http\Controllers\Controller;
 use App\Models\Manufacturing\BOM;
 use App\Models\Manufacturing\BOMLine;
+use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class BOMController extends Controller
 {
@@ -17,7 +20,7 @@ class BOMController extends Controller
      */
     public function index()
     {
-        $boms = BOM::with(['product', 'unitOfMeasure'])->get();
+        $boms = BOM::with(['item', 'unitOfMeasure'])->get();
         return response()->json(['data' => $boms]);
     }
 
@@ -30,7 +33,7 @@ class BOMController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|integer|exists:Product,product_id',
+            'item_id' => 'required|integer|exists:Item,item_id',
             'bom_code' => 'required|string|max:50',
             'revision' => 'required|string|max:10',
             'effective_date' => 'required|date',
@@ -52,7 +55,7 @@ class BOMController extends Controller
         DB::beginTransaction();
         try {
             $bom = BOM::create([
-                'product_id' => $request->product_id,
+                'item_id' => $request->item_id,
                 'bom_code' => $request->bom_code,
                 'revision' => $request->revision,
                 'effective_date' => $request->effective_date,
@@ -94,7 +97,7 @@ class BOMController extends Controller
      */
     public function show($id)
     {
-        $bom = BOM::with(['product', 'unitOfMeasure', 'bomLines.item', 'bomLines.unitOfMeasure'])->find($id);
+        $bom = BOM::with(['item', 'unitOfMeasure', 'bomLines.item', 'bomLines.unitOfMeasure'])->find($id);
         
         if (!$bom) {
             return response()->json(['message' => 'BOM not found'], 404);
@@ -119,7 +122,7 @@ class BOMController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'product_id' => 'sometimes|required|integer|exists:Product,product_id',
+            'item_id' => 'sometimes|required|integer|exists:Item,item_id',
             'bom_code' => 'sometimes|required|string|max:50',
             'revision' => 'sometimes|required|string|max:10',
             'effective_date' => 'sometimes|required|date',

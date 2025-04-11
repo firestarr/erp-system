@@ -165,24 +165,24 @@ const routes = [
         props: true
       },
         // BOM Routes
+      {
+        path: '/manufacturing/boms',
+        name: 'BOMList',
+        component: () => import('../views/manufacturing/BOMList.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/manufacturing/boms/:id',
+        name: 'BOMDetail',
+        component: () => import('../views/manufacturing/BOMDetail.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+      },
       //{
-        //path: '/manufacturing/boms',
-        //name: 'BOMList',
-        //component: () => import('../views/manufacturing/BOMList.vue'),
-        //meta: { requiresAuth: true }
+        //path: 'cycle-counts',
+        //name: 'CycleCounting',
+        //component: () => import('../views/inventory/CycleCounting.vue')
       //},
-      //{
-        //path: '/manufacturing/boms/:id',
-        //name: 'BOMDetail',
-        //component: () => import('../views/manufacturing/BOMDetail.vue'),
-        //props: true,
-        //meta: { requiresAuth: true }
-      //},
-      // {
-        // path: 'cycle-counts',
-        // name: 'CycleCounting',
-        // component: () => import('../views/inventory/CycleCounting.vue')
-      // },
       // Reports Routes
       // {
         // path: 'reports/stock',

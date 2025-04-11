@@ -126,6 +126,39 @@
             <span v-if="!sidebarCollapsed">Returns</span>
           </router-link>
         </div>
+
+        <!-- Manufacturing Section -->
+        <div class="menu-section">
+          <div @click="toggleMenuSection('manufacturing')" class="section-header">
+            <div class="section-title-container">
+              <i class="fas fa-industry"></i>
+              <span v-if="!sidebarCollapsed" class="section-title">Manufacturing</span>
+            </div>
+            <i v-if="!sidebarCollapsed" 
+              :class="menuSections.manufacturing ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" 
+              class="section-icon"></i>
+          </div>
+        </div>
+
+        <div v-show="!sidebarCollapsed && menuSections.manufacturing" class="submenu">
+          <router-link to="/manufacturing/boms" class="menu-item" active-class="active">
+            <i class="fas fa-clipboard-list"></i>
+            <span v-if="!sidebarCollapsed">Bills of Materials</span>
+          </router-link>
+          
+          <!-- Add more manufacturing submenu items here as needed -->
+          <!-- For example:
+          <router-link to="/manufacturing/work-orders" class="menu-item" active-class="active">
+            <i class="fas fa-tasks"></i>
+            <span v-if="!sidebarCollapsed">Work Orders</span>
+          </router-link>
+          
+          <router-link to="/manufacturing/production" class="menu-item" active-class="active">
+            <i class="fas fa-cogs"></i>
+            <span v-if="!sidebarCollapsed">Production</span>
+          </router-link>
+          -->
+        </div>
         
         <!-- Reports Section -->
         <div class="menu-section">
@@ -234,6 +267,7 @@ export default {
     const menuSections = reactive({
       inventory: false,
       stockOperations: false,
+      manufacturing: false,
       sales: false,
       reports: false,
       admin: false
@@ -250,6 +284,8 @@ export default {
         menuSections.stockOperations = true;
       } else if (path.includes('/customers') || path.includes('/sales/')) {
         menuSections.sales = true;
+      } else if (path.includes('/manufacturing/')) {
+        menuSections.manufacturing = true; // Add this condition  
       } else if (path.includes('/reports/')) {
         menuSections.reports = true;
       } else if (path.includes('/admin/')) {
@@ -288,6 +324,9 @@ export default {
         case 'Deliveries': return 'Deliveries';
         case 'SalesInvoices': return 'Sales Invoices';
         case 'SalesReturns': return 'Sales Returns';
+        // Manufacturing section - Add these lines
+        case 'BOMList': return 'Bills of Materials';
+        case 'BOMDetail': return 'BOM Details';
         case 'StockReport': return 'Stock Report';
         case 'MovementReport': return 'Movement Report';
         case 'SalesReport': return 'Sales Report';

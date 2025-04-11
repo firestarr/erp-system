@@ -11,12 +11,8 @@ const ProductService = {
    * @returns {Promise} Promise with products response
    */
   getProducts: async (params = {}) => {
-    try {
-      const response = await api.get('/products', { params });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get('/products', { params });
+    return response.data;
   },
   
   /**
@@ -25,12 +21,8 @@ const ProductService = {
    * @returns {Promise} Promise with product response
    */
   getProductById: async (id) => {
-    try {
-      const response = await api.get(`/products/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/products/${id}`);
+    return response.data;
   },
   
   /**
@@ -39,12 +31,8 @@ const ProductService = {
    * @returns {Promise} Promise with create product response
    */
   createProduct: async (productData) => {
-    try {
-      const response = await api.post('/products', productData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/products', productData);
+    return response.data;
   },
   
   /**
@@ -54,12 +42,8 @@ const ProductService = {
    * @returns {Promise} Promise with update product response
    */
   updateProduct: async (id, productData) => {
-    try {
-      const response = await api.put(`/products/${id}`, productData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put(`/products/${id}`, productData);
+    return response.data;
   },
   
   /**
@@ -68,12 +52,8 @@ const ProductService = {
    * @returns {Promise} Promise with delete product response
    */
   deleteProduct: async (id) => {
-    try {
-      const response = await api.delete(`/products/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
   },
   
   /**
@@ -82,12 +62,8 @@ const ProductService = {
    * @returns {Promise} Promise with BOMs response
    */
   getProductBOMs: async (productId) => {
-    try {
-      const response = await api.get(`/products/${productId}/boms`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/products/${productId}/boms`);
+    return response.data;
   }
 };
 

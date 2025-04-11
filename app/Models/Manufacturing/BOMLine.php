@@ -10,7 +10,7 @@ class BOMLine extends Model
 {
     use HasFactory;
 
-    protected $table = 'BOMLine';
+    protected $table = 'bom_lines';
     protected $primaryKey = 'line_id';
     public $timestamps = false;
 
