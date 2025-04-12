@@ -11,12 +11,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $table = 'Product';
-    protected $primaryKey = 'product_id';
+    protected $table = 'items';
+    protected $primaryKey = 'item_id';
     public $timestamps = false;
     
     protected $fillable = [
-        'product_code',
+        'item_code',
         'name',
         'description',
         'category_id',
@@ -44,7 +44,7 @@ class Product extends Model
      */
     public function boms(): HasMany
     {
-        return $this->hasMany(BOM::class, 'product_id', 'product_id');
+        return $this->hasMany(BOM::class, 'item_id', 'item_id');
     }
 
     /**
@@ -52,7 +52,7 @@ class Product extends Model
      */
     public function routings(): HasMany
     {
-        return $this->hasMany(Routing::class, 'product_id', 'product_id');
+        return $this->hasMany(Routing::class, 'item_id', 'item_id');
     }
 
     /**
@@ -60,6 +60,6 @@ class Product extends Model
      */
     public function workOrders(): HasMany
     {
-        return $this->hasMany(WorkOrder::class, 'product_id', 'product_id');
+        return $this->hasMany(WorkOrder::class, 'item_id', 'item_id');
     }
 }

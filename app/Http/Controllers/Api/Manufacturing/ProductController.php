@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Manufacturing;
 
+use App\Http\Controllers\Controller;
 use App\Models\Manufacturing\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -29,10 +30,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'product_code' => 'required|string|max:50|unique:Product,product_code',
+            'item_code' => 'required|string|max:50|unique:Item,item_code',
             'name' => 'required|string|max:100',
             'description' => 'nullable|string',
-            'category_id' => 'required|integer|exists:ItemCategory,category_id',
+'category_id' => 'required|integer|exists:App\Models\ItemCategory,category_id',
             'uom_id' => 'required|integer|exists:UnitOfMeasure,uom_id',
         ]);
 
@@ -77,7 +78,7 @@ class ProductController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'product_code' => 'sometimes|required|string|max:50|unique:Product,product_code,' . $id . ',product_id',
+            'item_code' => 'sometimes|required|string|max:50|unique:Item,item_code,' . $id . ',item_id',
             'name' => 'sometimes|required|string|max:100',
             'description' => 'nullable|string',
             'category_id' => 'sometimes|required|integer|exists:ItemCategory,category_id',

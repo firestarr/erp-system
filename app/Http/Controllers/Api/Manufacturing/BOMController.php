@@ -20,7 +20,7 @@ class BOMController extends Controller
      */
     public function index()
     {
-        $boms = BOM::with(['item', 'unitOfMeasure'])->get();
+        $boms = BOM::with(['items', 'unit_of_measures'])->get();
         return response()->json(['data' => $boms]);
     }
 
@@ -33,17 +33,17 @@ class BOMController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'item_id' => 'required|integer|exists:Item,item_id',
+            'item_id' => 'required|integer|exists:items,item_id',
             'bom_code' => 'required|string|max:50',
             'revision' => 'required|string|max:10',
             'effective_date' => 'required|date',
             'status' => 'required|string|max:50',
             'standard_quantity' => 'required|numeric',
-            'uom_id' => 'required|integer|exists:UnitOfMeasure,uom_id',
+            'uom_id' => 'required|integer|exists:unit_of_measures,uom_id',
             'bom_lines' => 'sometimes|array',
-            'bom_lines.*.item_id' => 'required|integer|exists:Item,item_id',
+            'bom_lines.*.item_id' => 'required|integer|exists:items,item_id',
             'bom_lines.*.quantity' => 'required|numeric',
-            'bom_lines.*.uom_id' => 'required|integer|exists:UnitOfMeasure,uom_id',
+            'bom_lines.*.uom_id' => 'required|integer|exists:unit_of_measures,uom_id',
             'bom_lines.*.is_critical' => 'sometimes|boolean',
             'bom_lines.*.notes' => 'nullable|string',
         ]);
@@ -122,13 +122,13 @@ class BOMController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'item_id' => 'sometimes|required|integer|exists:Item,item_id',
+            'item_id' => 'sometimes|required|integer|exists:items,item_id',
             'bom_code' => 'sometimes|required|string|max:50',
             'revision' => 'sometimes|required|string|max:10',
             'effective_date' => 'sometimes|required|date',
             'status' => 'sometimes|required|string|max:50',
             'standard_quantity' => 'sometimes|required|numeric',
-            'uom_id' => 'sometimes|required|integer|exists:UnitOfMeasure,uom_id',
+            'uom_id' => 'sometimes|required|integer|exists:unit_of_measures,uom_id',
         ]);
 
         if ($validator->fails()) {

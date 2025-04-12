@@ -18,7 +18,7 @@ class WorkOrder extends Model
     protected $fillable = [
         'wo_number',
         'wo_date',
-        'product_id',
+        'item_id',
         'bom_id',
         'routing_id',
         'planned_quantity',
@@ -38,7 +38,7 @@ class WorkOrder extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+        return $this->belongsTo(Product::class, 'item_id', 'item_id');
     }
 
     /**

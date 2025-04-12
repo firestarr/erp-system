@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use App\Models\Item;
+use App\Models\UnitOfMeasure;
 
 class BOM extends Model
 {
@@ -59,5 +62,28 @@ class BOM extends Model
     public function workOrders(): HasMany
     {
         return $this->hasMany(WorkOrder::class, 'bom_id', 'bom_id');
+    }
+
+    /**
+     * Get all items through BOM lines.
+     */
+    public function items(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Item::class,
+            BOMLine::class,
+            'bom_id', // Foreign key on BOMLine table
+            'item_id', // Foreign key on Item table
+            'bom_id',  // Local key on BOM table
+            'item_id'  // Local key on BOMLine table
+        );
+    }
+
+    /**
+     * Alias for unitOfMeasure relationship (backward compatibility)
+     */
+    public function unit_of_measures(): BelongsTo
+    {
+        return $this->unitOfMeasure();
     }
 }

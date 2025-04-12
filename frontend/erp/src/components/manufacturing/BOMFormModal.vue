@@ -26,19 +26,19 @@
             </div>
             
             <div class="form-group">
-              <label for="product_id">Product*</label>
+              <label for="item_id">Item*</label>
               <select 
-                id="product_id" 
-                v-model="form.product_id"
+                id="item_id" 
+                v-model="form.item_id"
                 required
-                :class="{ 'is-invalid': errors.product_id }"
+                :class="{ 'is-invalid': errors.item_id }"
               >
-                <option value="">-- Select Product --</option>
-                <option v-for="product in products" :key="product.product_id" :value="product.product_id">
-                  {{ product.name }}
+                <option value="">-- Select Item --</option>
+                <option v-for="item in items" :key="item.item_id" :value="item.item_id">
+                  {{ item.name }}
                 </option>
               </select>
-              <span v-if="errors.product_id" class="error-message">{{ errors.product_id }}</span>
+              <span v-if="errors.item_id" class="error-message">{{ errors.item_id }}</span>
             </div>
           </div>
           
@@ -93,7 +93,7 @@
                 :class="{ 'is-invalid': errors.uom_id }"
               >
                 <option value="">-- Select UOM --</option>
-                <option v-for="uom in unitsOfMeasure" :key="uom.uom_id" :value="uom.uom_id">
+                <option v-for="uom in unit_of_measures" :key="uom.uom_id" :value="uom.uom_id">
                   {{ uom.name }} ({{ uom.symbol }})
                 </option>
               </select>
@@ -113,7 +113,7 @@
               :class="{ 'is-invalid': errors.standard_quantity }"
             />
             <span v-if="errors.standard_quantity" class="error-message">{{ errors.standard_quantity }}</span>
-            <span class="hint-text">Quantity of finished product that this BOM produces</span>
+            <span class="hint-text">Quantity of finished item that this BOM produces</span>
           </div>
           
           <div class="form-actions">
@@ -132,7 +132,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue';
-import ProductService from '@/services/ProductService';
+import ItemService from '@/services/ItemService';
 import UnitOfMeasureService from '@/services/UnitOfMeasureService';
 
 export default {
@@ -149,8 +149,8 @@ export default {
   },
   emits: ['save', 'close'],
   setup(props, { emit }) {
-    const products = ref([]);
-    const unitsOfMeasure = ref([]);
+    const items = ref([]);
+    const unit_of_measures = ref([]);
     const isLoading = ref(false);
     const errors = ref({});
     
@@ -158,7 +158,7 @@ export default {
     const form = reactive({
       bom_id: props.bomData.bom_id || null,
       bom_code: props.bomData.bom_code || '',
-      product_id: props.bomData.product_id || '',
+      item_id: props.bomData.item_id || '',
       revision: props.bomData.revision || '1.0',
       effective_date: props.bomData.effective_date || new Date().toISOString().split('T')[0],
       status: props.bomData.status || 'Draft',
@@ -166,19 +166,19 @@ export default {
       uom_id: props.bomData.uom_id || ''
     });
     
-    // Load products and units of measure
-    const fetchProducts = async () => {
+    // Load items and units of measure
+    const fetchItems = async () => {
       try {
-        const result = await ProductService.getProducts();
-        products.value = result.data || [];
+        const result = await ItemService.getItems();
+        items.value = result.data || [];
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching items:', error);
         // For demonstration, use dummy data
-        products.value = [
-          { product_id: 1, name: 'Laptop Model X' },
-          { product_id: 2, name: 'Smartphone Y Pro' },
-          { product_id: 3, name: 'Mechanical Keyboard' },
-          { product_id: 4, name: 'Wireless Earbuds' }
+        items.value = [
+          { item_id: 1, name: 'Laptop Model X' },
+          { item_id: 2, name: 'Smartphone Y Pro' },
+          { item_id: 3, name: 'Mechanical Keyboard' },
+          { item_id: 4, name: 'Wireless Earbuds' }
         ];
       }
     };
@@ -186,11 +186,11 @@ export default {
     const fetchUnitsOfMeasure = async () => {
       try {
         const result = await UnitOfMeasureService.getAll();
-        unitsOfMeasure.value = result.data || [];
+        unit_of_measures.value = result.data || [];
       } catch (error) {
         console.error('Error fetching units of measure:', error);
         // For demonstration, use dummy data
-        unitsOfMeasure.value = [
+        unit_of_measures.value = [
           { uom_id: 1, name: 'Each', symbol: 'EA' },
           { uom_id: 2, name: 'Piece', symbol: 'PC' },
           { uom_id: 3, name: 'Kilogram', symbol: 'KG' },
@@ -207,8 +207,8 @@ export default {
         errors.value.bom_code = 'BOM Code is required';
       }
       
-      if (!form.product_id) {
-        errors.value.product_id = 'Product is required';
+      if (!form.item_id) {
+        errors.value.item_id = 'Item is required';
       }
       
       if (!form.revision) {
@@ -244,14 +244,14 @@ export default {
     };
     
     onMounted(() => {
-      fetchProducts();
+      fetchItems();
       fetchUnitsOfMeasure();
     });
     
     return {
       form,
-      products,
-      unitsOfMeasure,
+      items,
+      unit_of_measures,
       isLoading,
       errors,
       submitForm

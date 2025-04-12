@@ -3,7 +3,7 @@
   <div class="bom-list">
     <div class="page-header">
       <h1>Bills of Materials</h1>
-      <button class="btn btn-primary" @click="openCreateModal">
+      <button class="btn btn-primary" @click="openCreateIntegratedModal">
         <i class="fas fa-plus"></i> Create New BOM
       </button>
     </div>
@@ -53,7 +53,7 @@
         <button class="action-btn" title="View BOM Details" @click="viewBOM(item)">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="action-btn" title="Edit BOM" @click="editBOM(item)">
+        <button class="action-btn" title="Edit BOM" @click="editBOMIntegrated(item)">
           <i class="fas fa-edit"></i>
         </button>
         <button class="action-btn" title="Delete BOM" @click="confirmDelete(item)">
@@ -73,13 +73,14 @@
       @page-changed="changePage"
     />
 
-    <!-- BOM Form Modal -->
-    <BOMFormModal
-      v-if="showBOMModal"
+    <!-- Integrated BOM Form Modal -->
+    <IntegratedBOMForm
+      v-if="showIntegratedBOMModal"
       :is-edit-mode="isEditMode"
       :bom-data="currentBOM"
-      @close="closeBOMModal"
-      @save="saveBOM"
+      :is-submitting="isSubmitting"
+      @close="closeIntegratedBOMModal"
+      @save="saveIntegratedBOM"
     />
 
     <!-- Delete Confirmation Modal -->
@@ -99,12 +100,14 @@
 import { ref, computed, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import BOMService from '@/services/BOMService';
-import BOMFormModal from '@/components/manufacturing/BOMFormModal.vue';
+import IntegratedBOMForm from '@/components/manufacturing/IntegratedBOMForm.vue';
+import DataTable from '@/components/common/DataTable.vue';
 
 export default {
   name: 'BOMList',
   components: {
-    BOMFormModal
+    IntegratedBOMForm,
+    DataTable
   },
   setup() {
     const router = useRouter();
@@ -117,13 +120,14 @@ export default {
     const perPage = ref(10);
     const totalItems = ref(0);
     const totalPages = ref(1);
+    const isSubmitting = ref(false);
 
     const filters = reactive({
       status: ''
     });
 
     // Modals
-    const showBOMModal = ref(false);
+    const showIntegratedBOMModal = ref(false);
     const showDeleteModal = ref(false);
     const isEditMode = ref(false);
     const currentBOM = ref({});
@@ -132,7 +136,7 @@ export default {
     // Table columns
     const columns = ref([
       { key: 'bom_code', label: 'BOM Code', sortable: true },
-      { key: 'product.name', label: 'Product', sortable: true },
+      { key: 'item.name', label: 'Product', sortable: true },
       { key: 'revision', label: 'Revision', sortable: true },
       { key: 'effective_date', label: 'Effective Date', sortable: true, template: 'date' },
       { key: 'status', label: 'Status', sortable: true, template: 'status' },
@@ -184,7 +188,131 @@ export default {
       return boms.value;
     });
 
-    // Methods
+    // Methods for handling BOM operations
+    const openCreateIntegratedModal = () => {
+      isEditMode.value = false;
+      currentBOM.value = {
+        item_id: '',
+        bom_code: '',
+        revision: '1.0',
+        effective_date: new Date().toISOString().split('T')[0],
+        status: 'Draft',
+        standard_quantity: 1,
+        uom_id: '',
+        bomLines: []
+      };
+      showIntegratedBOMModal.value = true;
+    };
+
+    const editBOMIntegrated = async (bom) => {
+      isEditMode.value = true;
+      isLoading.value = true;
+      
+      try {
+        // Fetch complete BOM data including lines
+        const response = await BOMService.getBOMById(bom.bom_id);
+        const bomData = response.data;
+        
+        // Also fetch BOM lines for editing
+        const linesResponse = await BOMService.getBOMLines(bom.bom_id);
+        bomData.bomLines = linesResponse.data || [];
+        
+        currentBOM.value = bomData;
+        showIntegratedBOMModal.value = true;
+      } catch (error) {
+        console.error('Error fetching BOM details:', error);
+        alert('Failed to load BOM details for editing. Please try again.');
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const closeIntegratedBOMModal = () => {
+      showIntegratedBOMModal.value = false;
+    };
+
+    const saveIntegratedBOM = async (bomData) => {
+      isSubmitting.value = true;
+      
+      try {
+        if (isEditMode.value) {
+          // Update existing BOM header
+          await BOMService.updateBOM(bomData.bom_id, {
+            item_id: bomData.item_id,
+            bom_code: bomData.bom_code,
+            revision: bomData.revision,
+            effective_date: bomData.effective_date,
+            status: bomData.status,
+            standard_quantity: bomData.standard_quantity,
+            uom_id: bomData.uom_id
+          });
+          
+          // Handle BOM lines - update, delete, or create as needed
+          const existingLines = await BOMService.getBOMLines(bomData.bom_id);
+          const existingLineIds = existingLines.data.map(line => line.line_id);
+          
+          // Update or create BOM lines
+          for (const line of bomData.bomLines) {
+            if (line.line_id) {
+              // Update existing line
+              await BOMService.updateBOMLine(bomData.bom_id, line.line_id, {
+                item_id: line.item_id,
+                quantity: line.quantity,
+                uom_id: line.uom_id,
+                is_critical: line.is_critical,
+                notes: line.notes
+              });
+            } else {
+              // Create new line
+              await BOMService.createBOMLine(bomData.bom_id, {
+                item_id: line.item_id,
+                quantity: line.quantity,
+                uom_id: line.uom_id,
+                is_critical: line.is_critical,
+                notes: line.notes
+              });
+            }
+          }
+          
+          // Get submitted line IDs to identify deleted lines
+          const submittedLineIds = bomData.bomLines
+            .filter(line => line.line_id)
+            .map(line => line.line_id);
+          
+          // Delete lines that were removed in the form
+          for (const existingId of existingLineIds) {
+            if (!submittedLineIds.includes(existingId)) {
+              await BOMService.deleteBOMLine(bomData.bom_id, existingId);
+            }
+          }
+        } else {
+          // Create new BOM with lines
+          const bomHeader = {
+            item_id: bomData.item_id,
+            bom_code: bomData.bom_code,
+            revision: bomData.revision,
+            effective_date: bomData.effective_date,
+            status: bomData.status,
+            standard_quantity: bomData.standard_quantity,
+            uom_id: bomData.uom_id,
+            bomLines: bomData.bomLines
+          };
+          
+          await BOMService.createBOM(bomHeader);
+        }
+        
+        // Refresh the list after saving
+        fetchBOMs();
+        closeIntegratedBOMModal();
+      } catch (error) {
+        console.error('Error saving BOM:', error);
+        alert('Failed to save BOM. Please try again.');
+      } finally {
+        isSubmitting.value = false;
+      }
+    };
+    
+    // Methods for filter, sort, pagination
     const applyFilters = () => {
       currentPage.value = 1;
       fetchBOMs();
@@ -206,72 +334,9 @@ export default {
       fetchBOMs();
     };
 
-    const formatDate = (dateString) => {
-      if (!dateString) return '-';
-      
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    };
-
-    const getStatusClass = (status) => {
-      switch (status) {
-        case 'Active':
-          return 'status-active';
-        case 'Draft':
-          return 'status-draft';
-        case 'Obsolete':
-          return 'status-obsolete';
-        default:
-          return '';
-      }
-    };
-
+    // Navigation and Delete methods
     const viewBOM = (bom) => {
       router.push(`/manufacturing/boms/${bom.bom_id}`);
-    };
-
-    const openCreateModal = () => {
-      isEditMode.value = false;
-      currentBOM.value = {
-        product_id: '',
-        bom_code: '',
-        revision: '1.0',
-        effective_date: new Date().toISOString().split('T')[0],
-        status: 'Draft',
-        standard_quantity: 1,
-        uom_id: ''
-      };
-      showBOMModal.value = true;
-    };
-
-    const editBOM = (bom) => {
-      isEditMode.value = true;
-      currentBOM.value = { ...bom };
-      showBOMModal.value = true;
-    };
-
-    const closeBOMModal = () => {
-      showBOMModal.value = false;
-    };
-
-    const saveBOM = async (bomData) => {
-      try {
-        if (isEditMode.value) {
-          await BOMService.updateBOM(bomData.bom_id, bomData);
-        } else {
-          await BOMService.createBOM(bomData);
-        }
-        // Refresh the list after saving
-        fetchBOMs();
-        closeBOMModal();
-      } catch (error) {
-        console.error('Error saving BOM:', error);
-        alert('Failed to save BOM. Please try again.');
-      }
     };
 
     const confirmDelete = (bom) => {
@@ -296,6 +361,31 @@ export default {
       }
     };
 
+    // Helper methods
+    const formatDate = (dateString) => {
+      if (!dateString) return '-';
+      
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
+
+    const getStatusClass = (status) => {
+      switch (status) {
+        case 'Active':
+          return 'status-active';
+        case 'Draft':
+          return 'status-draft';
+        case 'Obsolete':
+          return 'status-obsolete';
+        default:
+          return '';
+      }
+    };
+
     onMounted(() => {
       fetchBOMs();
     });
@@ -304,6 +394,7 @@ export default {
       boms,
       columns,
       isLoading,
+      isSubmitting,
       searchQuery,
       filters,
       filteredBOMs,
@@ -311,11 +402,15 @@ export default {
       perPage,
       totalItems,
       totalPages,
-      showBOMModal,
+      showIntegratedBOMModal,
       showDeleteModal,
       isEditMode,
       currentBOM,
       bomToDelete,
+      openCreateIntegratedModal,
+      editBOMIntegrated,
+      closeIntegratedBOMModal,
+      saveIntegratedBOM,
       applyFilters,
       clearSearch,
       handleSort,
@@ -323,10 +418,6 @@ export default {
       formatDate,
       getStatusClass,
       viewBOM,
-      openCreateModal,
-      editBOM,
-      closeBOMModal,
-      saveBOM,
       confirmDelete,
       closeDeleteModal,
       deleteBOM

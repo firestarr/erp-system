@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\Manufacturing;
 
+use App\Http\Controllers\Controller;
 use App\Models\Manufacturing\WorkOrder;
 use App\Models\Manufacturing\WorkOrderOperation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class WorkOrderController extends Controller
 {
@@ -32,7 +34,7 @@ class WorkOrderController extends Controller
         $validator = Validator::make($request->all(), [
             'wo_number' => 'required|string|max:50|unique:WorkOrder,wo_number',
             'wo_date' => 'required|date',
-            'product_id' => 'required|integer|exists:Product,product_id',
+            'item_id' => 'required|integer|exists:Item,item_id',
             'bom_id' => 'required|integer|exists:BOM,bom_id',
             'routing_id' => 'required|integer|exists:Routing,routing_id',
             'planned_quantity' => 'required|numeric',
@@ -117,7 +119,7 @@ class WorkOrderController extends Controller
         $validator = Validator::make($request->all(), [
             'wo_number' => 'sometimes|required|string|max:50|unique:WorkOrder,wo_number,' . $id . ',wo_id',
             'wo_date' => 'sometimes|required|date',
-            'product_id' => 'sometimes|required|integer|exists:Product,product_id',
+            'item_id' => 'sometimes|required|integer|exists:Item,item_id',
             'bom_id' => 'sometimes|required|integer|exists:BOM,bom_id',
             'routing_id' => 'sometimes|required|integer|exists:Routing,routing_id',
             'planned_quantity' => 'sometimes|required|numeric',

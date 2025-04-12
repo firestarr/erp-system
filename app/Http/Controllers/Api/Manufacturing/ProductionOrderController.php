@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\Manufacturing;
 
+use App\Http\Controllers\Controller;
 use App\Models\Manufacturing\ProductionOrder;
 use App\Models\Manufacturing\ProductionConsumption;
 use App\Models\Manufacturing\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ProductionOrderController extends Controller
 {
