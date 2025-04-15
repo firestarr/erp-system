@@ -549,7 +549,7 @@
         isLoading.value = true;
         
         try {
-          const response = await axios.get('/api/customers');
+          const response = await axios.get('/customers');
           customers.value = response.data.data;
         } catch (error) {
           console.error('Error fetching customers:', error);
@@ -653,7 +653,7 @@
           
           if (isEditMode.value) {
             // Update existing customer
-            await axios.put(`/api/customers/${customerForm.value.customer_id}`, customerForm.value);
+            await axios.put(`/customers/${customerForm.value.customer_id}`, customerForm.value);
             
             // Update local state
             const index = customers.value.findIndex(c => c.customer_id === customerForm.value.customer_id);
@@ -669,7 +669,7 @@
             alert('Customer updated successfully!');
           } else {
             // Create new customer
-            const response = await axios.post('/api/customers', customerForm.value);
+            const response = await axios.post('/customers', customerForm.value);
             
             // Add to local state
             customers.value.push(response.data.data);
@@ -724,7 +724,7 @@
       
       const deleteCustomer = async () => {
         try {
-          await axios.delete(`/api/customers/${customerToDelete.value.customer_id}`);
+          await axios.delete(`/customers/${customerToDelete.value.customer_id}`);
           
           // Remove from local state
           customers.value = customers.value.filter(c => c.customer_id !== customerToDelete.value.customer_id);
@@ -753,7 +753,7 @@
       const fetchCustomerOrders = async (customerId) => {
         isLoadingOrders.value = true;
         try {
-          const response = await axios.get(`/api/customers/${customerId}/orders`);
+          const response = await axios.get(`/customers/${customerId}/orders`);
           customerOrders.value = response.data.data;
         } catch (error) {
           console.error('Error fetching customer orders:', error);
@@ -782,7 +782,7 @@
       const fetchCustomerInvoices = async (customerId) => {
         isLoadingInvoices.value = true;
         try {
-          const response = await axios.get(`/api/customers/${customerId}/invoices`);
+          const response = await axios.get(`/customers/${customerId}/invoices`);
           customerInvoices.value = response.data.data;
         } catch (error) {
           console.error('Error fetching customer invoices:', error);
@@ -813,7 +813,7 @@
       const fetchCustomerQuotations = async (customerId) => {
         isLoadingQuotations.value = true;
         try {
-          const response = await axios.get(`/api/customers/${customerId}/quotations`);
+          const response = await axios.get(`/customers/${customerId}/quotations`);
           customerQuotations.value = response.data.data;
         } catch (error) {
           console.error('Error fetching customer quotations:', error);
@@ -842,7 +842,7 @@
       const fetchCustomerInteractions = async (customerId) => {
         isLoadingInteractions.value = true;
         try {
-          const response = await axios.get(`/api/interactions/customer/${customerId}`);
+          const response = await axios.get(`/interactions/customer/${customerId}`);
           customerInteractions.value = response.data.data;
         } catch (error) {
           console.error('Error fetching customer interactions:', error);

@@ -51,4 +51,9 @@ class Item extends Model
     {
         return $this->hasMany(CycleCounting::class, 'item_id', 'item_id');
     }
+    
+    public function consignmentStocks()
+    {
+        return $this->hasMany(ConsignmentStock::class, 'item_id', 'item_id');
+    }
 }

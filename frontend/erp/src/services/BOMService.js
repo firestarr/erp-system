@@ -6,98 +6,143 @@ import api from './api';
  */
 const BOMService = {
   /**
-   * Get all BOMs
-   * @param {object} params Query parameters
+   * Get all BOMs with optional pagination and filters
+   * @param {Object} params - Query parameters for filtering and pagination
    * @returns {Promise} Promise with BOMs response
    */
-  getBOMs: async (params = {}) => {
-    const response = await api.get('/boms', { params });
-    return response.data;
+  getAllBOMs: async (params = {}) => {
+    try {
+      const response = await api.get('/manufacturing/boms', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching BOMs:', error);
+      throw error;
+    }
   },
-  
+
   /**
-   * Get a BOM by ID
-   * @param {number} id BOM ID
+   * Get a specific BOM by ID
+   * @param {Number} id - BOM ID
    * @returns {Promise} Promise with BOM response
    */
   getBOMById: async (id) => {
-    const response = await api.get(`/boms/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/manufacturing/boms/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching BOM ${id}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
    * Create a new BOM
-   * @param {object} bomData BOM data
+   * @param {Object} bomData - BOM data including components
    * @returns {Promise} Promise with create BOM response
    */
   createBOM: async (bomData) => {
-    const response = await api.post('/boms', bomData);
-    return response.data;
+    try {
+      const response = await api.post('/manufacturing/boms', bomData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating BOM:', error);
+      throw error;
+    }
   },
-  
+
   /**
-   * Update a BOM
-   * @param {number} id BOM ID
-   * @param {object} bomData BOM data to update
+   * Update an existing BOM
+   * @param {Number} id - BOM ID
+   * @param {Object} bomData - BOM data to update
    * @returns {Promise} Promise with update BOM response
    */
   updateBOM: async (id, bomData) => {
-    const response = await api.put(`/boms/${id}`, bomData);
-    return response.data;
+    try {
+      const response = await api.put(`/manufacturing/boms/${id}`, bomData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating BOM ${id}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
    * Delete a BOM
-   * @param {number} id BOM ID
+   * @param {Number} id - BOM ID
    * @returns {Promise} Promise with delete BOM response
    */
   deleteBOM: async (id) => {
-    const response = await api.delete(`/boms/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/manufacturing/boms/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting BOM ${id}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
-   * Get BOM lines for a specific BOM
-   * @param {number} bomId BOM ID
+   * Get BOM component lines
+   * @param {Number} bomId - BOM ID
    * @returns {Promise} Promise with BOM lines response
    */
   getBOMLines: async (bomId) => {
-    const response = await api.get(`/boms/${bomId}/lines`);
-    return response.data;
+    try {
+      const response = await api.get(`/manufacturing/boms/${bomId}/lines`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching BOM lines for BOM ${bomId}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
-   * Create a new BOM line
-   * @param {number} bomId BOM ID
-   * @param {object} lineData Line data
+   * Add a new component line to a BOM
+   * @param {Number} bomId - BOM ID
+   * @param {Object} lineData - BOM line data
    * @returns {Promise} Promise with create BOM line response
    */
-  createBOMLine: async (bomId, lineData) => {
-    const response = await api.post(`/boms/${bomId}/lines`, lineData);
-    return response.data;
+  addBOMLine: async (bomId, lineData) => {
+    try {
+      const response = await api.post(`/manufacturing/boms/${bomId}/lines`, lineData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error adding BOM line to BOM ${bomId}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
-   * Update a BOM line
-   * @param {number} bomId BOM ID
-   * @param {number} lineId Line ID
-   * @param {object} lineData Line data to update
+   * Update an existing BOM line
+   * @param {Number} bomId - BOM ID
+   * @param {Number} lineId - BOM line ID
+   * @param {Object} lineData - BOM line data to update
    * @returns {Promise} Promise with update BOM line response
    */
   updateBOMLine: async (bomId, lineId, lineData) => {
-    const response = await api.put(`/boms/${bomId}/lines/${lineId}`, lineData);
-    return response.data;
+    try {
+      const response = await api.put(`/manufacturing/boms/${bomId}/lines/${lineId}`, lineData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating BOM line ${lineId} for BOM ${bomId}:`, error);
+      throw error;
+    }
   },
-  
+
   /**
    * Delete a BOM line
-   * @param {number} bomId BOM ID
-   * @param {number} lineId Line ID
+   * @param {Number} bomId - BOM ID
+   * @param {Number} lineId - BOM line ID
    * @returns {Promise} Promise with delete BOM line response
    */
   deleteBOMLine: async (bomId, lineId) => {
-    const response = await api.delete(`/boms/${bomId}/lines/${lineId}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/manufacturing/boms/${bomId}/lines/${lineId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting BOM line ${lineId} for BOM ${bomId}:`, error);
+      throw error;
+    }
   }
 };
 

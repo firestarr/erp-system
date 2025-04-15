@@ -18,10 +18,53 @@ class BOMController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $boms = BOM::with(['items', 'unit_of_measures'])->get();
-        return response()->json(['data' => $boms]);
+        $query = BOM::with(['items', 'unit_of_measures']);
+
+        // Filtering by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        // Search by bom_code or item name
+        if ($request->has('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('bom_code', 'like', "%{$search}%")
+                  ->orWhereHas('items', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Sorting
+        $sortField = $request->get('sort_field', 'bom_code');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // To support sorting by related item name, handle 'item.name' key
+        if ($sortField === 'item.name') {
+            $query->join('items', 'boms.item_id', '=', 'items.item_id')
+                  ->orderBy('items.name', $sortOrder)
+                  ->select('boms.*');
+        } else {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Pagination parameters
+        $perPage = $request->get('per_page', 10);
+
+        $boms = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $boms->items(),
+            'meta' => [
+                'total' => $boms->total(),
+                'last_page' => $boms->lastPage(),
+                'current_page' => $boms->currentPage(),
+                'per_page' => $boms->perPage(),
+            ],
+        ]);
     }
 
     /**
@@ -97,13 +140,23 @@ class BOMController extends Controller
      */
     public function show($id)
     {
-        $bom = BOM::with(['item', 'unitOfMeasure', 'bomLines.item', 'bomLines.unitOfMeasure'])->find($id);
-        
-        if (!$bom) {
-            return response()->json(['message' => 'BOM not found'], 404);
+        try {
+            // Try loading only main relationships first
+            $bom = BOM::with(['items', 'unit_of_measures'])->find($id);
+            
+            if (!$bom) {
+                return response()->json(['message' => 'BOM not found'], 404);
+            }
+            
+            // Load bomLines and their relations separately to isolate errors
+            $bom->load(['bomLines.items', 'bomLines.unit_of_measures']);
+            
+            return response()->json(['data' => $bom]);
+        } catch (\Exception $e) {
+            // Log the exception message for debugging
+            \Log::error('Error fetching BOM: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to fetch BOM', 'error' => $e->getMessage()], 500);
         }
-        
-        return response()->json(['data' => $bom]);
     }
 
     /**

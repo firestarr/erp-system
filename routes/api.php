@@ -90,6 +90,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // UOM Routes
     //Route::apiResource('unit-of-measures', UnitOfMeasureController::class);
     
+    Route::get('consignment-stocks', [ConsignmentStockController::class, 'index']);
+    Route::post('consignment-stocks', [ConsignmentStockController::class, 'store']);
+    Route::get('consignment-stocks/{id}', [ConsignmentStockController::class, 'show']);
+    Route::put('consignment-stocks/{id}', [ConsignmentStockController::class, 'update']);
+    Route::delete('consignment-stocks/{id}', [ConsignmentStockController::class, 'destroy']);
+    
+    // Additional routes for consignment operations
+    Route::post('consignment-stocks/{id}/consume', [ConsignmentStockController::class, 'consumeConsignment']);
+    Route::post('consignment-stocks/{id}/return', [ConsignmentStockController::class, 'returnToVendor']);
+    
+    // Reporting routes
+    Route::get('consignment-stocks/vendor/{vendorId}', [ConsignmentStockController::class, 'getByVendor']);
+    Route::get('consignment-stocks/item/{itemId}', [ConsignmentStockController::class, 'getByItem']);
+    Route::get('consignment-stocks/reports/by-vendor', [ConsignmentStockController::class, 'reportByVendor']);
+
     // Warehouse Routes
     Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('warehouses.zones', WarehouseZoneController::class);
@@ -310,8 +325,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('products', ProductController::class);
 
     // BOM
-    Route::apiResource('boms', BOMController::class);
-    Route::apiResource('boms/{bomId}/lines', BOMLineController::class);
+    Route::apiResource('manufacturing/boms', BOMController::class);
+    Route::apiResource('manufacturing/boms/{bomId}/lines', BOMLineController::class);
 
     // Routing
     Route::apiResource('routings', RoutingController::class);

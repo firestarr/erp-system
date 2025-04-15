@@ -47,7 +47,7 @@
         successMessage.value = '';
         
         try {
-          await axios.post('/api/customers', formData);
+          await axios.post('/customers', formData);
           
           successMessage.value = 'Customer created successfully!';
           

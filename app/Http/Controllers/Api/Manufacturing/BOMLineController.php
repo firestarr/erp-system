@@ -25,7 +25,7 @@ class BOMLineController extends Controller
             return response()->json(['message' => 'BOM not found'], 404);
         }
         
-        $bomLines = BOMLine::with(['item', 'unitOfMeasure'])
+        $bomLines = BOMLine::with(['items', 'unit_of_measures'])
             ->where('bom_id', $bomId)
             ->get();
             
@@ -48,9 +48,9 @@ class BOMLineController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'item_id' => 'required|integer|exists:Item,item_id',
+            'item_id' => 'required|integer|exists:items,item_id',
             'quantity' => 'required|numeric',
-            'uom_id' => 'required|integer|exists:UnitOfMeasure,uom_id',
+            'uom_id' => 'required|integer|exists:unit_of_measures,uom_id',
             'is_critical' => 'sometimes|boolean',
             'notes' => 'nullable|string',
         ]);
@@ -69,7 +69,7 @@ class BOMLineController extends Controller
         $bomLine->save();
 
         return response()->json([
-            'data' => $bomLine->load(['item', 'unitOfMeasure']), 
+            'data' => $bomLine->load(['items', 'unit_of_measures']), 
             'message' => 'BOM line created successfully'
         ], 201);
     }
@@ -83,7 +83,7 @@ class BOMLineController extends Controller
      */
     public function show($bomId, $id)
     {
-        $bomLine = BOMLine::with(['item', 'unitOfMeasure'])
+        $bomLine = BOMLine::with(['items', 'unit_of_measures'])
             ->where('bom_id', $bomId)
             ->where('line_id', $id)
             ->first();
@@ -114,9 +114,9 @@ class BOMLineController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'item_id' => 'sometimes|required|integer|exists:Item,item_id',
+            'item_id' => 'sometimes|required|integer|exists:items,item_id',
             'quantity' => 'sometimes|required|numeric',
-            'uom_id' => 'sometimes|required|integer|exists:UnitOfMeasure,uom_id',
+            'uom_id' => 'sometimes|required|integer|exists:unit_of_measures,uom_id',
             'is_critical' => 'sometimes|boolean',
             'notes' => 'nullable|string',
         ]);
@@ -128,7 +128,7 @@ class BOMLineController extends Controller
         $bomLine->update($request->all());
         
         return response()->json([
-            'data' => $bomLine->load(['item', 'unitOfMeasure']), 
+            'data' => $bomLine->load(['items', 'unit_of_measures']), 
             'message' => 'BOM line updated successfully'
         ]);
     }

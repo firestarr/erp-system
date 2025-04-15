@@ -170,63 +170,17 @@
                   No components added. Click "Add Component" to add BOM components.
                 </td>
               </tr>
-              <tr v-for="(line, index) in formData.bom_lines" :key="index">
-                <td>
-                  <select 
-                    v-model="line.item_id" 
-                    required
-                    :class="{ 'is-invalid': lineErrors[index]?.item_id }"
-                  >
-                    <option value="">-- Select Item --</option>
-                    <option v-for="item in componentItems" :key="item.item_id" :value="item.item_id">
-                      {{ item.name }} ({{ item.item_code }})
-                    </option>
-                  </select>
-                  <div v-if="lineErrors[index]?.item_id" class="invalid-feedback">{{ lineErrors[index].item_id }}</div>
-                </td>
-                <td>
-                  <input 
-                    type="number" 
-                    v-model="line.quantity" 
-                    required
-                    min="0.01"
-                    step="0.01"
-                    :class="{ 'is-invalid': lineErrors[index]?.quantity }"
-                  />
-                  <div v-if="lineErrors[index]?.quantity" class="invalid-feedback">{{ lineErrors[index].quantity }}</div>
-                </td>
-                <td>
-                  <select 
-                    v-model="line.uom_id" 
-                    required
-                    :class="{ 'is-invalid': lineErrors[index]?.uom_id }"
-                  >
-                    <option value="">-- Select UOM --</option>
-                    <option v-for="uom in unitOfMeasures" :key="uom.uom_id" :value="uom.uom_id">
-                      {{ uom.name }} ({{ uom.symbol }})
-                    </option>
-                  </select>
-                  <div v-if="lineErrors[index]?.uom_id" class="invalid-feedback">{{ lineErrors[index].uom_id }}</div>
-                </td>
-                <td>
-                  <div class="checkbox-wrapper">
-                    <input type="checkbox" :id="'is_critical_' + index" v-model="line.is_critical" />
-                    <label :for="'is_critical_' + index" class="checkbox-label"></label>
-                  </div>
-                </td>
-                <td>
-                  <input 
-                    type="text" 
-                    v-model="line.notes" 
-                    placeholder="Optional notes"
-                  />
-                </td>
-                <td>
-                  <button type="button" class="action-btn delete-btn" @click="removeBOMLine(index)" title="Remove Line">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
+              <BOMLineItem
+                v-for="(line, index) in formData.bom_lines" 
+                :key="index"
+                :line="line"
+                :line-index="index"
+                :items="componentItems"
+                :unit-of-measures="unitOfMeasures"
+                :validation-errors="lineErrors[index] || {}"
+                @update="updateBOMLine"
+                @remove="removeBOMLine(index)"
+              />
             </tbody>
           </table>
         </div>
@@ -253,9 +207,14 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
+import BOMService from '@/services/BOMService';
+import BOMLineItem from '@/components/manufacturing/BOMLineItem.vue';
 
 export default {
   name: 'BOMForm',
+  components: {
+    BOMLineItem
+  },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -303,8 +262,8 @@ export default {
         
         // If editing, fetch the BOM data
         if (isEditMode.value) {
-          const bomResponse = await api.get(`/manufacturing/boms/${bomId.value}`);
-          const bomData = bomResponse.data.data;
+          const bomResponse = await BOMService.getBOMById(bomId.value);
+          const bomData = bomResponse.data;
           
           // Set main form data
           formData.item_id = bomData.item_id;
@@ -343,6 +302,11 @@ export default {
         is_critical: false,
         notes: ''
       });
+    };
+    
+    // Update a BOM line
+    const updateBOMLine = ({ index, line }) => {
+      Object.assign(formData.bom_lines[index], line);
     };
     
     // Remove a BOM line
@@ -431,8 +395,6 @@ export default {
       isSaving.value = true;
       
       try {
-        let response;
-        
         // Format the data for API
         const apiData = {
           item_id: formData.item_id,
@@ -445,18 +407,33 @@ export default {
           bom_lines: formData.bom_lines
         };
         
+        let response;
+        
         if (isEditMode.value) {
           // Update existing BOM
-          response = await api.put(`/manufacturing/boms/${bomId.value}`, apiData);
+          response = await BOMService.updateBOM(bomId.value, apiData);
           
           // Handle BOM lines separately for an update
-          // We need to add/update/delete BOM lines individually
-          const existingBomLines = formData.bom_lines.filter(line => line.line_id);
-          const newBomLines = formData.bom_lines.filter(line => !line.line_id);
+          const existingLines = formData.bom_lines.filter(line => line.line_id);
+          const newLines = formData.bom_lines.filter(line => !line.line_id);
+          
+          // Get existing BOM lines to determine which ones to delete
+          const existingLinesResponse = await BOMService.getBOMLines(bomId.value);
+          const existingBOMLines = existingLinesResponse.data || [];
+          
+          // Find lines to delete (lines that exist in DB but not in form)
+          const linesToDelete = existingBOMLines.filter(dbLine => 
+            !existingLines.some(formLine => formLine.line_id === dbLine.line_id)
+          );
+          
+          // Delete removed lines
+          for (const line of linesToDelete) {
+            await BOMService.deleteBOMLine(bomId.value, line.line_id);
+          }
           
           // Update existing lines
-          for (const line of existingBomLines) {
-            await api.put(`/manufacturing/boms/${bomId.value}/lines/${line.line_id}`, {
+          for (const line of existingLines) {
+            await BOMService.updateBOMLine(bomId.value, line.line_id, {
               item_id: line.item_id,
               quantity: line.quantity,
               uom_id: line.uom_id,
@@ -466,8 +443,8 @@ export default {
           }
           
           // Add new lines
-          for (const line of newBomLines) {
-            await api.post(`/manufacturing/boms/${bomId.value}/lines`, {
+          for (const line of newLines) {
+            await BOMService.addBOMLine(bomId.value, {
               item_id: line.item_id,
               quantity: line.quantity,
               uom_id: line.uom_id,
@@ -479,8 +456,8 @@ export default {
           router.push(`/manufacturing/boms/${bomId.value}`);
         } else {
           // Create new BOM
-          response = await api.post('/manufacturing/boms', apiData);
-          router.push(`/manufacturing/boms/${response.data.data.bom_id}`);
+          response = await BOMService.createBOM(apiData);
+          router.push(`/manufacturing/boms/${response.data.bom_id}`);
         }
       } catch (error) {
         console.error('Error saving BOM:', error);
@@ -510,6 +487,7 @@ export default {
       errors,
       lineErrors,
       addBOMLine,
+      updateBOMLine,
       removeBOMLine,
       saveBOM
     };
